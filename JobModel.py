@@ -1,10 +1,16 @@
 # Standard library dependencies
 import datetime as dt
+import re
 import xml.etree.ElementTree as ElementTree
 from typing import Dict, List, Optional
 
 Element = ElementTree.Element
 datetime = dt.datetime
+
+# Constants
+PUB_DATE_FORMAT: str = '%a, %d %b %Y %H:%M:%S %z'
+REGEX_REMOVE_HTML_TAGS = re.compile(r'<.*?>')
+REGEX_REMOVE_EXTRA_WHITESPACE = re.compile(r'\s{2,}')
 
 
 class JobModel():
@@ -34,25 +40,17 @@ class JobModel():
                 'published': publishedStr}
 
     @classmethod
-    def parsePubDate(cls, text: str) -> datetime:
-        var: datetime = datetime.strptime(text, '%a, %d %b %Y %H:%M:%S %z')
-        return var
-
-    @classmethod
     def fromRssItem(cls, rssItem: Element) -> 'JobModel':
-        # empty job model
         jobModel = cls()
 
-        # Iterate through child elements of item
         for child in rssItem:
             if child.text is not None:
-                jobModel.handleChildElement(child.tag, child.text)
+                jobModel.handleChildElement(tag=child.tag, text=child.text)
 
-        # append news dictionary to news items list
         return jobModel
 
-    @classmethod
-    def fromRssResponse(cls, rssResponse: Element) -> List['JobModel']:
+    @staticmethod
+    def fromRssResponse(rssResponse: Element) -> List['JobModel']:
         jobModels: List[JobModel] = []
 
         # Iterate items in RSS feed
@@ -61,3 +59,17 @@ class JobModel():
             jobModels.append(jobModel)
 
         return jobModels
+
+    @staticmethod
+    def parseDescription(description: str) -> str:
+        output: str = ''
+        descriptionAsList: List[str] = description.split('\n')[7:-3]
+        output = output.join(descriptionAsList)
+        output = REGEX_REMOVE_HTML_TAGS.sub(string=output, repl=' ')
+        output = REGEX_REMOVE_EXTRA_WHITESPACE.sub(string=output, repl=' ')
+        return output.strip()
+
+    @staticmethod
+    def parsePubDate(pubDate: str) -> datetime:
+        var: datetime = datetime.strptime(pubDate, PUB_DATE_FORMAT)
+        return var

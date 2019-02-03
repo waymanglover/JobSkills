@@ -1,6 +1,7 @@
 # Standard library dependencies
+import json
 from datetime import datetime, timedelta
-from typing import Dict, Optional
+from typing import Dict, Optional, IO
 
 
 class JobBoardModel():
@@ -30,6 +31,14 @@ class JobBoardModel():
         print(f'Next refresh available: {nextRequestTime.isoformat(sep=" ")}')
         return datetime.now() > nextRequestTime
 
+    def serialize(self, file: IO[str]) -> None:
+        json.dump(self.__dict__, file, default=JobBoardModel.jsonDefault)
+
+    @classmethod
+    def deserialize(cls, file: IO[str]) -> 'JobBoardModel':
+        jobBoard: JobBoardModel = json.load(file, object_hook=cls.fromDict)
+        return jobBoard
+
     @classmethod
     def fromDict(cls, dct: Dict[str, str]) -> 'JobBoardModel':
         lastRequested: Optional[datetime] = None
@@ -46,3 +55,9 @@ class JobBoardModel():
         return cls(responseText=dct.get('responseText', ''),
                    lastRequested=lastRequested,
                    interval=interval)
+
+    @staticmethod
+    def jsonDefault(obj: object) -> str:
+        if isinstance(obj, datetime):
+            return obj.isoformat()
+        raise TypeError(f'Type {type(obj)} not serializable')

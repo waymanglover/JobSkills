@@ -1,6 +1,5 @@
 # Standard library dependencies
 import datetime
-import json
 import xml.etree.ElementTree as ElementTree
 from typing import List
 
@@ -20,49 +19,40 @@ Element = ElementTree.Element
 JOB_BOARD_URL: str = (
     'https://weworkremotely.com/categories/remote-programming-jobs.rss'
     )
+CACHE_FILENAME = 'cache'
 
 
 def main() -> None:
-    response: JobBoardModel = getLatestResponse()
-    if not response.isReadyForRefresh():
+    try:
+        with open(CACHE_FILENAME, 'r') as cache:
+            jobBoard: JobBoardModel = JobBoardModel.deserialize(cache)
+    except FileNotFoundError:
+        # Can't find cache. Assume no requests have been done yet.
+        jobBoard = JobBoardModel()
+
+    if not jobBoard.isReadyForRefresh():
         print('Not ready for refresh.')
         return None
-    # TODO: HTTP error handling. Assuming success for now.
+
     httpResponse: Response = requests.get(JOB_BOARD_URL)
+    httpResponse.raise_for_status()
+
     print(f"Got response: {httpResponse.text}")
-    # TODO: Update interval from response?
-    response = JobBoardModel(responseText=httpResponse.text,
+    # TODO: Update interval from response
+    # RSS supplies a refresh interval (in minutes) for clients.
+    # I don't expect it'll change often, so it's hard-coded for now.
+    jobBoard = JobBoardModel(responseText=httpResponse.text,
                              lastRequested=datetime.datetime.now())
-    writeToCache(response)
-    rssResponse: Element = ElementTree.fromstring(response.responseText)
+
+    with open(CACHE_FILENAME, 'w') as cache:
+        jobBoard.serialize(cache)
+
+    rssResponse: Element = ElementTree.fromstring(jobBoard.responseText)
     jobModels: List[JobModel] = JobModel.fromRssResponse(rssResponse)
 
     with DatabaseHelper() as dbHelper:
         print('Opened DB')
         dbHelper.insert(jobModels)
-
-
-def writeToCache(response: JobBoardModel) -> None:
-    with open('cache', 'w') as cache:
-        json.dump(response.__dict__, cache, default=jsonDefault)
-
-
-def getLatestResponse() -> JobBoardModel:
-    try:
-        with open('cache', 'r') as cache:
-            response: JobBoardModel = json.load(
-                cache,
-                object_hook=JobBoardModel.fromDict)
-        return response
-    except FileNotFoundError:
-        # No response has been cached yet. Return an empty response.
-        return JobBoardModel()
-
-
-def jsonDefault(obj: object) -> str:
-    if isinstance(obj, datetime.datetime):
-        return obj.isoformat()
-    raise TypeError(f'Type {type(obj)} not serializable')
 
 
 if __name__ == '__main__':
