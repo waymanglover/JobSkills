@@ -125,6 +125,7 @@ dmypy.json
 ### VisualStudioCode ###
 .vscode/*
 !.vscode/settings.json
+!.vscode/launch.json
 !.vscode/tasks.json
 !.vscode/extensions.json
 
@@ -133,6 +134,8 @@ dmypy.json
 .history
 
 # End of https://www.gitignore.io/api/python,visualstudiocode
+### Bash ###
+bash.exe.stackdump
 
 ### RemoteSkills ###
 cache
