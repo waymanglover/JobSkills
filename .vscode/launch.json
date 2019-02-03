@@ -5,17 +5,17 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: RemoteSkills (Integrated Terminal)",
+            "name": "Python: JobSkills (Integrated Terminal)",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/RemoteSkills.py",
+            "program": "${workspaceFolder}/JobSkills.py",
             "console": "integratedTerminal"
         },
         {
-            "name": "Python: RemoteSkills (External Terminal)",
+            "name": "Python: JobSkills (External Terminal)",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/RemoteSkills.py",
+            "program": "${workspaceFolder}/JobSkills.py",
             "console": "externalTerminal"
         }
     ]
