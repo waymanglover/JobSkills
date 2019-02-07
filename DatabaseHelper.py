@@ -1,7 +1,7 @@
 # Standard library dependencies
 import sqlite3
 from types import TracebackType
-from typing import Dict, List, Optional, Type
+from typing import Dict, List, Optional, Type, Any
 
 # Internal dependencies
 from JobModel import JobModel
@@ -31,6 +31,12 @@ INSERT_JOBS: str = '''
 
 class DatabaseHelper():
     """Helper class for accessing SQLite job/skills database"""
+    # TODO: Connection has helper methods (ex: con.executemany) that would
+    # save us the effort of holding on to a cursor. Not sure if that would
+    # perform better/worse than caching our own cursor. I'd assume worse?
+    # If we did switch to that, we could use the connection as the context
+    # manager instead of manually committing. See:
+    # https://docs.python.org/2/library/sqlite3.html#using-the-connection-as-a-context-manager
     connection: Optional[Connection] = None
     cursor: Optional[Cursor] = None
 
@@ -68,10 +74,13 @@ class DatabaseHelper():
         self.cursor.execute(CREATE_JOBS_TABLE)
         self.commit()
 
-    def insert(self, jobModels: List[JobModel]) -> None:
+    # Not sure why, but mypy can't determine the type of
+    # self.cursor.rowcount. Believe it should be int,
+    # but we have to annotate it as Any.
+    def insert(self, jobModels: List[JobModel]) -> Any:
         assert(self.cursor is not None)
-        print(f'Attempting insert of {len(jobModels)} jobs.')
         jobModelDicts: List[Dict[str, str]] = [jobModel.toDict()
                                                for jobModel in jobModels]
         self.cursor.executemany(INSERT_JOBS, jobModelDicts)
         self.commit()
+        return self.cursor.rowcount

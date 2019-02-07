@@ -51,8 +51,7 @@ def main() -> None:
     jobModels: List[JobModel] = JobModel.fromRssResponse(rssResponse)
 
     with DatabaseHelper() as dbHelper:
-        print('Opened DB')
-        dbHelper.insert(jobModels)
+        print(f'Inserted {dbHelper.insert(jobModels)} job(s)')
 
 
 if __name__ == '__main__':
