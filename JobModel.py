@@ -53,7 +53,6 @@ class JobModel():
     def fromRssResponse(rssResponse: Element) -> List['JobModel']:
         jobModels: List[JobModel] = []
 
-        # Iterate items in RSS feed
         for item in rssResponse.findall('./channel/item'):
             jobModel: JobModel = JobModel.fromRssItem(item)
             jobModels.append(jobModel)
@@ -63,6 +62,11 @@ class JobModel():
     @staticmethod
     def parseDescription(description: str) -> str:
         output: str = ''
+        # This is a bit of a hack. It removes metadata (logo, HQ location,
+        # company/application URLs) from the description. This would only be
+        # correct for WeWorkRemotely and would break if they change the format.
+        # Everything else so far should be generic enough to work for any job
+        # board RSS feed.
         descriptionAsList: List[str] = description.split('\n')[7:-3]
         output = output.join(descriptionAsList)
         output = REGEX_REMOVE_HTML_TAGS.sub(string=output, repl=' ')
