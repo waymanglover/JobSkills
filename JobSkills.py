@@ -37,7 +37,6 @@ def main() -> None:
     httpResponse: Response = requests.get(JOB_BOARD_URL)
     httpResponse.raise_for_status()
 
-    print(f"Got response: {httpResponse.text}")
     # TODO: Update interval from response
     # RSS supplies a refresh interval (in minutes) for clients.
     # I don't expect it'll change often, so it's hard-coded for now.
