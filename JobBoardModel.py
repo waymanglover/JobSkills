@@ -24,12 +24,15 @@ class JobBoardModel():
             self.interval = interval
 
     def isReadyForRefresh(self) -> bool:
+        nextRequestTime: datetime = self.getNextRefreshTime()
+        return datetime.now() >= nextRequestTime
+
+    def getNextRefreshTime(self) -> datetime:
         if self.lastRequested is None or self.interval == 0:
-            return True
+            return datetime.now()
         delta: timedelta = timedelta(minutes=self.interval)
         nextRequestTime: datetime = self.lastRequested + delta
-        print(f'Next refresh available: {nextRequestTime.isoformat(sep=" ")}')
-        return datetime.now() > nextRequestTime
+        return nextRequestTime
 
     def serialize(self, file: IO[str]) -> None:
         json.dump(self.__dict__, file, default=JobBoardModel.jsonDefault)

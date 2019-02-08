@@ -31,7 +31,7 @@ def main() -> None:
         jobBoard = JobBoardModel()
 
     if not jobBoard.isReadyForRefresh():
-        print('Not ready for refresh.')
+        print(f'Not ready. Next refresh at {jobBoard.getNextRefreshTime()}')
         return None
 
     httpResponse: Response = requests.get(JOB_BOARD_URL)
