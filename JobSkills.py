@@ -52,6 +52,8 @@ def main() -> None:
     with DatabaseHelper() as dbHelper:
         print(f'Inserted {dbHelper.insert(jobModels)} job(s)')
 
+    print(f'Next refresh at {jobBoard.getNextRefreshTime()}')
+
 
 if __name__ == '__main__':
     main()
