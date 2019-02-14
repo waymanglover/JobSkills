@@ -1,3 +1,5 @@
+"""Class to provide helper methods for SQLite database access."""
+
 # Standard library dependencies
 import sqlite3
 from types import TracebackType
@@ -30,7 +32,8 @@ INSERT_JOBS: str = '''
 
 
 class DatabaseHelper():
-    """Helper class for accessing SQLite job/skills database"""
+    """Helper class for accessing SQLite job/skills database."""
+
     # TODO: Connection has helper methods (ex: con.executemany) that would
     # save us the effort of holding on to a cursor. Not sure if that would
     # perform better/worse than caching our own cursor. I'd assume worse?
@@ -41,6 +44,7 @@ class DatabaseHelper():
     cursor: Optional[Cursor] = None
 
     def __enter__(self) -> 'DatabaseHelper':
+        """Create database connection when used in a with block."""
         self.connect()
         return self
 
@@ -48,15 +52,22 @@ class DatabaseHelper():
                  exc_type: Optional[Type[BaseException]],
                  exc_val: Optional[Exception],
                  exc_tb: Optional[TracebackType]) -> bool:
+        """Close database connection at the end of a with block."""
         self.close()
         return False
 
     def connect(self) -> None:
+        """
+        Create a database connection and save off the cursor.
+
+        Also creates the required tables in the database, if they do not exist.
+        """
         self.connection = sqlite3.connect(DATABASE_FILENAME)
         self.cursor = self.connection.cursor()
         self.createTables()
 
     def close(self) -> None:
+        """Close any open database cursors and connections."""
         if self.cursor is not None:
             self.cursor.close()
             self.cursor = None
@@ -66,10 +77,12 @@ class DatabaseHelper():
             self.connection = None
 
     def commit(self) -> None:
+        """Commit the current transaction to the database."""
         assert(self.connection is not None)
         self.connection.commit()
 
     def createTables(self) -> None:
+        """Create required tables in the database, if they don't exist."""
         assert(self.cursor is not None)
         self.cursor.execute(CREATE_JOBS_TABLE)
         self.commit()
@@ -78,6 +91,7 @@ class DatabaseHelper():
     # self.cursor.rowcount. Believe it should be int,
     # but we have to annotate it as Any.
     def insert(self, jobModels: List[JobModel]) -> Any:
+        """Insert all provided JobModels into the jobs table."""
         assert(self.cursor is not None)
         jobModelDicts: List[Dict[str, str]] = [jobModel.toDict()
                                                for jobModel in jobModels]
