@@ -75,5 +75,5 @@ class JobModel():
 
     @staticmethod
     def parsePubDate(pubDate: str) -> datetime:
-        var: datetime = datetime.strptime(pubDate, PUB_DATE_FORMAT)
-        return var
+        dt: datetime = datetime.strptime(pubDate, PUB_DATE_FORMAT)
+        return dt
